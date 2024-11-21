@@ -1,5 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
+import AlertMessage from "./components/AlertMessage";
+import QuoteCard from "./components/QuoteCard";
+import GetQuoteButton from "./components/GetQuoteButton";
+import Footer from "./components/Footer";
 
 const HomePage = () => {
   const [quoteText, setQuoteText] = useState<string>(
@@ -12,36 +16,39 @@ const HomePage = () => {
   const [limitInfo, setLimitInfo] = useState<string>(
     "Jumlah kutipan yang tersisa: 10"
   );
-  const [countdownTimer, setCountdownTimer] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isQuoteCopied, setIsQuoteCopied] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
-  const updateLimitInfo = (newCount: number = quoteRequestCount) => {
-    if (newCount >= 10) {
-      setLimitInfo("Batas kutipan tercapai, harap tunggu 5 menit.");
+  const updateLimitInfo = (remainingTime: number | null = null) => {
+    if (quoteRequestCount >= 10) {
+      if (remainingTime !== null) {
+        const minutes = Math.floor(remainingTime / 60000);
+        const seconds = Math.floor((remainingTime % 60000) / 1000);
+        setLimitInfo(
+          `Batas kutipan tercapai, harap tunggu ${minutes}:${seconds
+            .toString()
+            .padStart(2, "0")} menit.`
+        );
+      } else {
+        setLimitInfo("Batas kutipan tercapai, harap tunggu 5 menit.");
+      }
       setCanGetQuote(false);
     } else {
-      setLimitInfo(`Jumlah kutipan yang tersisa: ${10 - newCount}`);
+      setLimitInfo(`Jumlah kutipan yang tersisa: ${10 - quoteRequestCount}`);
       setCanGetQuote(true);
     }
   };
 
   const startCountdown = (remainingTime: number) => {
-    let timeLeft = remainingTime / 1000;
-    setCountdownTimer(
-      `Tunggu ${Math.ceil(timeLeft)} detik lagi untuk mendapatkan kutipan baru.`
-    );
+    let timeLeft = remainingTime;
 
     const countdownInterval = setInterval(() => {
-      timeLeft--;
-      setCountdownTimer(
-        `Tunggu ${Math.ceil(
-          timeLeft
-        )} detik lagi untuk mendapatkan kutipan baru.`
-      );
+      timeLeft -= 1000;
 
-      if (timeLeft <= 0) {
+      if (timeLeft > 0) {
+        updateLimitInfo(timeLeft);
+      } else {
         clearInterval(countdownInterval);
         setLimitInfo("Batas kutipan telah direset. Silakan coba lagi.");
         setCanGetQuote(true);
@@ -50,7 +57,6 @@ const HomePage = () => {
           "lastRequestTime",
           new Date().getTime().toString()
         );
-        setCountdownTimer("");
       }
     }, 1000);
   };
@@ -98,21 +104,6 @@ const HomePage = () => {
     }
   };
 
-  const copyQuote = () => {
-    const quote = `${quoteText} ${quoteAuthor}`;
-    navigator.clipboard
-      .writeText(quote)
-      .then(() => {
-        setAlertMessage("Kutipan berhasil disalin!");
-        setIsQuoteCopied(true);
-        setTimeout(() => setAlertMessage(null), 4000);
-      })
-      .catch(() => {
-        setAlertMessage("Gagal menyalin kutipan.");
-        setTimeout(() => setAlertMessage(null), 4000);
-      });
-  };
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedRequestCount = parseInt(
@@ -131,85 +122,28 @@ const HomePage = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <main className="flex-grow flex flex-col items-center justify-center p-6">
-        {alertMessage && (
-          <div className="bg-blue-500 text-white p-4 rounded-md mb-4 shadow-md animate__animated animate__fadeIn">
-            {alertMessage}
-          </div>
-        )}
-        <div className="bg-white shadow-md rounded-lg p-6 max-w-xl w-full text-center mb-6 transform transition duration-300 hover:scale-105">
-          <p className="text-xl font-semibold mb-4">{quoteText}</p>
-          <p className="text-gray-500 mb-4">{quoteAuthor}</p>
-          {quoteText && quoteAuthor && !isQuoteCopied && (
-            <button
-              onClick={copyQuote}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md shadow-md transform transition duration-300 hover:scale-105"
-              disabled={isQuoteCopied}
-            >
-              Salin Kutipan
-            </button>
-          )}
-        </div>
+        <AlertMessage message={alertMessage} />
+        <QuoteCard
+          text={quoteText}
+          author={quoteAuthor}
+          isQuoteCopied={isQuoteCopied}
+          onCopy={() => {
+            const quote = `${quoteText} ${quoteAuthor}`;
+            navigator.clipboard.writeText(quote).then(() => {
+              setAlertMessage("Kutipan berhasil disalin!");
+              setIsQuoteCopied(true);
+              setTimeout(() => setAlertMessage(null), 4000);
+            });
+          }}
+        />
         <p className="text-gray-600 mb-2">{limitInfo}</p>
-        <p className="text-red-500 mb-4">{countdownTimer}</p>
-        <button
+        <GetQuoteButton
           onClick={getRandomQuote}
-          disabled={!canGetQuote || isLoading}
-          className={`${
-            canGetQuote && !isLoading
-              ? "bg-green-500 hover:bg-green-600"
-              : "bg-gray-400 cursor-not-allowed"
-          } text-white px-6 py-2 rounded-md shadow-md transform transition duration-300 hover:scale-105`}
-        >
-          {isLoading ? "Loading..." : "Dapatkan Quote"}
-        </button>
+          canGetQuote={canGetQuote}
+          isLoading={isLoading}
+        />
       </main>
-      <footer className="bg-gray-200 py-4 text-center text-sm text-gray-700">
-        <h3 className="text-lg font-bold mb-2">Ikuti Saya</h3>
-        <div className="flex justify-center space-x-4">
-          <a
-            href="https://www.youtube.com/@codeworshipper"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png"
-              alt="YouTube"
-              className="w-8 h-8 hover:scale-110 transition"
-            />
-          </a>
-          <a
-            href="https://www.instagram.com/synchhans"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/9/95/Instagram_logo_2022.svg"
-              alt="Instagram"
-              className="w-8 h-8 hover:scale-110 transition"
-            />
-          </a>
-          <a
-            href="https://wa.me/+6283804506486"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              src="https://clipart.info/images/ccovers/1499955335whatsapp-icon-logo-png.png"
-              alt="WhatsApp"
-              className="w-8 h-8 hover:scale-110 transition"
-            />
-          </a>
-        </div>
-        <p className="text-sm text-gray-500 mt-2">
-          Hubungi saya di{" "}
-          <a
-            href="mailto:muhamadfarhan.inc@gmail.com"
-            className="text-blue-500 hover:underline"
-          >
-            muhamadfarhan.inc@gmail.com
-          </a>
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 };
