@@ -1,0 +1,117 @@
+/* Styling untuk container utama */
+.container {
+  text-align: center;
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.quote-box {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling untuk tombol */
+button {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+/* Styling untuk footer */
+footer {
+  background-color: #f1f1f1;
+  padding: 20px;
+  margin-top: 40px;
+  text-align: center;
+  border-top: 2px solid #ddd;
+  position: relative;
+}
+
+footer h3 {
+  margin-bottom: 10px;
+}
+
+/* Styling untuk daftar sosial media */
+.social-media ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.social-media li {
+  display: inline;
+}
+
+.social-icon {
+  width: 40px;
+  height: 40px;
+  transition: transform 0.3s ease;
+}
+
+.social-icon:hover {
+  transform: scale(1.2);
+}
+
+/* Menghilangkan underline pada link */
+a {
+  text-decoration: none;
+}
+
+/* Styling untuk link email */
+.contact-info a {
+  color: #333;
+}
+
+.contact-info a:hover {
+  color: #0077b5;
+}
+
+/* Responsif untuk layar kecil */
+@media screen and (max-width: 768px) {
+  .social-media ul {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .social-icon {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+.copy-alert {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #4caf50;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+#limit-info {
+  margin-top: 20px;
+  font-size: 18px;
+}
+
+#countdown-timer {
+  font-size: 16px;
+  color: red;
+  margin-top: 10px;
+}
