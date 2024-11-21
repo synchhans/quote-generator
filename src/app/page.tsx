@@ -95,11 +95,7 @@ const HomePage = () => {
     navigator.clipboard
       .writeText(quote)
       .then(() => {
-        const copyAlert = document.createElement("div");
-        copyAlert.classList.add("copy-alert");
-        copyAlert.textContent = "Kutipan berhasil disalin!";
-        document.body.appendChild(copyAlert);
-        setTimeout(() => copyAlert.remove(), 2000);
+        alert("Kutipan berhasil disalin!");
       })
       .catch(() => {
         alert("Gagal menyalin kutipan.");
@@ -122,92 +118,80 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div className="container">
-      <div className="quote-box">
-        <p id="quote-text">{quoteText}</p>
-        <p id="quote-author">{quoteAuthor}</p>
-        {/* Show Copy button only when a quote is available */}
-        {quoteText && quoteAuthor && (
-          <button id="copy-quote-btn" onClick={copyQuote}>
-            Copy
-          </button>
-        )}
-      </div>
-      <div id="limit-info">{limitInfo}</div>
-      <div id="countdown-timer">{countdownTimer}</div>
-      <button
-        id="get-quote-btn"
-        onClick={getRandomQuote}
-        disabled={!canGetQuote}
-      >
-        Dapatkan Quote
-      </button>
-
-      <footer>
-        <div className="social-media">
-          <h3>Ikuti Saya</h3>
-          <ul>
-            <li>
-              <a
-                href="https://www.youtube.com/@codeworshipper"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="YouTube"
-              >
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png"
-                  alt="YouTube"
-                  className="social-icon"
-                />
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://www.instagram.com/synchhans"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Instagram"
-              >
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/9/95/Instagram_logo_2022.svg"
-                  alt="Instagram"
-                  className="social-icon"
-                />
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://wa.me/+6283804506486"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="WhatsApp"
-              >
-                <img
-                  src="https://clipart.info/images/ccovers/1499955335whatsapp-icon-logo-png.png"
-                  alt="WhatsApp"
-                  className="social-icon"
-                />
-              </a>
-            </li>
-            <li>
-              <a href="mailto:muhamadfarhan.inc@gmail.com" title="Email">
-                <img
-                  src="https://static.vecteezy.com/system/resources/previews/000/425/714/original/vector-email-icon.jpg"
-                  alt="Email"
-                  className="social-icon"
-                />
-              </a>
-            </li>
-          </ul>
+    <div className="flex flex-col min-h-screen bg-gray-100">
+      <main className="flex-grow flex flex-col items-center justify-center p-6">
+        <div className="bg-white shadow-md rounded-lg p-6 max-w-xl w-full text-center mb-6">
+          <p className="text-xl font-semibold mb-4">{quoteText}</p>
+          <p className="text-gray-500 mb-4">{quoteAuthor}</p>
+          {quoteText && quoteAuthor && (
+            <button
+              onClick={copyQuote}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md shadow-md"
+            >
+              Salin Kutipan
+            </button>
+          )}
         </div>
-        <div className="contact-info">
-          <p>
-            Hubungi saya di{" "}
-            <a href="mailto:muhamadfarhan.inc@gmail.com">
-              muhamadfarhan.inc@gmail.com
-            </a>
-          </p>
+        <p className="text-gray-600 mb-2">{limitInfo}</p>
+        <p className="text-red-500 mb-4">{countdownTimer}</p>
+        <button
+          onClick={getRandomQuote}
+          disabled={!canGetQuote}
+          className={`${
+            canGetQuote
+              ? "bg-green-500 hover:bg-green-600"
+              : "bg-gray-400 cursor-not-allowed"
+          } text-white px-6 py-2 rounded-md shadow-md`}
+        >
+          Dapatkan Quote
+        </button>
+      </main>
+      <footer className="bg-gray-200 py-4 text-center text-sm text-gray-700">
+        <h3 className="text-lg font-bold mb-2">Ikuti Saya</h3>
+        <div className="flex justify-center space-x-4">
+          <a
+            href="https://www.youtube.com/@codeworshipper"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png"
+              alt="YouTube"
+              className="w-8 h-8 hover:scale-110 transition"
+            />
+          </a>
+          <a
+            href="https://www.instagram.com/synchhans"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/9/95/Instagram_logo_2022.svg"
+              alt="Instagram"
+              className="w-8 h-8 hover:scale-110 transition"
+            />
+          </a>
+          <a
+            href="https://wa.me/+6283804506486"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="https://clipart.info/images/ccovers/1499955335whatsapp-icon-logo-png.png"
+              alt="WhatsApp"
+              className="w-8 h-8 hover:scale-110 transition"
+            />
+          </a>
         </div>
+        <p className="text-sm text-gray-500 mt-2">
+          Hubungi saya di{" "}
+          <a
+            href="mailto:muhamadfarhan.inc@gmail.com"
+            className="text-blue-500 hover:underline"
+          >
+            muhamadfarhan.inc@gmail.com
+          </a>
+        </p>
       </footer>
     </div>
   );
