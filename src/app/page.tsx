@@ -13,6 +13,9 @@ const HomePage = () => {
     "Jumlah kutipan yang tersisa: 10"
   );
   const [countdownTimer, setCountdownTimer] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isQuoteCopied, setIsQuoteCopied] = useState<boolean>(false);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   const updateLimitInfo = (newCount: number = quoteRequestCount) => {
     if (newCount >= 10) {
@@ -74,6 +77,8 @@ const HomePage = () => {
       return newCount;
     });
 
+    setIsLoading(true);
+
     try {
       const response = await fetch("/api/quotes");
       if (!response.ok) {
@@ -85,8 +90,11 @@ const HomePage = () => {
       setQuoteText(randomQuote.text);
       setQuoteAuthor(`- ${randomQuote.author}`);
     } catch (error) {
-      console.error(error);
-      alert("Terjadi kesalahan dalam mengambil kutipan!");
+      setAlertMessage("Terjadi kesalahan dalam mengambil kutipan!");
+      setTimeout(() => setAlertMessage(null), 4000);
+    } finally {
+      setIsLoading(false);
+      setIsQuoteCopied(false);
     }
   };
 
@@ -95,10 +103,13 @@ const HomePage = () => {
     navigator.clipboard
       .writeText(quote)
       .then(() => {
-        alert("Kutipan berhasil disalin!");
+        setAlertMessage("Kutipan berhasil disalin!");
+        setIsQuoteCopied(true);
+        setTimeout(() => setAlertMessage(null), 4000);
       })
       .catch(() => {
-        alert("Gagal menyalin kutipan.");
+        setAlertMessage("Gagal menyalin kutipan.");
+        setTimeout(() => setAlertMessage(null), 4000);
       });
   };
 
@@ -120,13 +131,19 @@ const HomePage = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <main className="flex-grow flex flex-col items-center justify-center p-6">
-        <div className="bg-white shadow-md rounded-lg p-6 max-w-xl w-full text-center mb-6">
+        {alertMessage && (
+          <div className="bg-blue-500 text-white p-4 rounded-md mb-4 shadow-md animate__animated animate__fadeIn">
+            {alertMessage}
+          </div>
+        )}
+        <div className="bg-white shadow-md rounded-lg p-6 max-w-xl w-full text-center mb-6 transform transition duration-300 hover:scale-105">
           <p className="text-xl font-semibold mb-4">{quoteText}</p>
           <p className="text-gray-500 mb-4">{quoteAuthor}</p>
-          {quoteText && quoteAuthor && (
+          {quoteText && quoteAuthor && !isQuoteCopied && (
             <button
               onClick={copyQuote}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md shadow-md"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md shadow-md transform transition duration-300 hover:scale-105"
+              disabled={isQuoteCopied}
             >
               Salin Kutipan
             </button>
@@ -136,14 +153,14 @@ const HomePage = () => {
         <p className="text-red-500 mb-4">{countdownTimer}</p>
         <button
           onClick={getRandomQuote}
-          disabled={!canGetQuote}
+          disabled={!canGetQuote || isLoading}
           className={`${
-            canGetQuote
+            canGetQuote && !isLoading
               ? "bg-green-500 hover:bg-green-600"
               : "bg-gray-400 cursor-not-allowed"
-          } text-white px-6 py-2 rounded-md shadow-md`}
+          } text-white px-6 py-2 rounded-md shadow-md transform transition duration-300 hover:scale-105`}
         >
-          Dapatkan Quote
+          {isLoading ? "Loading..." : "Dapatkan Quote"}
         </button>
       </main>
       <footer className="bg-gray-200 py-4 text-center text-sm text-gray-700">
