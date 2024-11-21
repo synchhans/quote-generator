@@ -2,24 +2,56 @@
 import { useState, useEffect } from "react";
 
 const HomePage = () => {
-  // State untuk mengelola quote dan status
   const [quoteText, setQuoteText] = useState<string>(
     "Klik tombol untuk mendapatkan quote!"
   );
   const [quoteAuthor, setQuoteAuthor] = useState<string>("");
   const [canGetQuote, setCanGetQuote] = useState<boolean>(true);
-  const [quoteRequestCount, setQuoteRequestCount] = useState<number>(
-    parseInt(localStorage.getItem("quoteRequestCount") || "0")
-  );
-  const [lastRequestTime, setLastRequestTime] = useState<number>(
-    parseInt(localStorage.getItem("lastRequestTime") || "0")
-  );
+  const [quoteRequestCount, setQuoteRequestCount] = useState<number>(0);
+  const [lastRequestTime, setLastRequestTime] = useState<number>(0);
   const [limitInfo, setLimitInfo] = useState<string>(
     "Jumlah kutipan yang tersisa: 10"
   );
   const [countdownTimer, setCountdownTimer] = useState<string>("");
 
-  // Fungsi untuk mengambil quote acak
+  const updateLimitInfo = (newCount: number = quoteRequestCount) => {
+    if (newCount >= 10) {
+      setLimitInfo("Batas kutipan tercapai, harap tunggu 5 menit.");
+      setCanGetQuote(false);
+    } else {
+      setLimitInfo(`Jumlah kutipan yang tersisa: ${10 - newCount}`);
+      setCanGetQuote(true);
+    }
+  };
+
+  const startCountdown = (remainingTime: number) => {
+    let timeLeft = remainingTime / 1000;
+    setCountdownTimer(
+      `Tunggu ${Math.ceil(timeLeft)} detik lagi untuk mendapatkan kutipan baru.`
+    );
+
+    const countdownInterval = setInterval(() => {
+      timeLeft--;
+      setCountdownTimer(
+        `Tunggu ${Math.ceil(
+          timeLeft
+        )} detik lagi untuk mendapatkan kutipan baru.`
+      );
+
+      if (timeLeft <= 0) {
+        clearInterval(countdownInterval);
+        setLimitInfo("Batas kutipan telah direset. Silakan coba lagi.");
+        setCanGetQuote(true);
+        localStorage.setItem("quoteRequestCount", "0");
+        localStorage.setItem(
+          "lastRequestTime",
+          new Date().getTime().toString()
+        );
+        setCountdownTimer("");
+      }
+    }, 1000);
+  };
+
   const getRandomQuote = async () => {
     if (quoteRequestCount >= 10) {
       const currentTime = new Date().getTime();
@@ -28,13 +60,12 @@ const HomePage = () => {
         startCountdown(remainingTime);
         return;
       }
-      setQuoteRequestCount(0); // Reset count after 5 minutes
+      setQuoteRequestCount(0);
       localStorage.setItem("quoteRequestCount", "0");
       localStorage.setItem("lastRequestTime", currentTime.toString());
       updateLimitInfo();
     }
 
-    // Use functional state update for quoteRequestCount
     setQuoteRequestCount((prevCount) => {
       const newCount = prevCount + 1;
       localStorage.setItem("quoteRequestCount", newCount.toString());
@@ -59,7 +90,6 @@ const HomePage = () => {
     }
   };
 
-  // Fungsi untuk menyalin kutipan
   const copyQuote = () => {
     const quote = `${quoteText} ${quoteAuthor}`;
     navigator.clipboard
@@ -69,55 +99,27 @@ const HomePage = () => {
         copyAlert.classList.add("copy-alert");
         copyAlert.textContent = "Kutipan berhasil disalin!";
         document.body.appendChild(copyAlert);
-        setTimeout(() => copyAlert.remove(), 2000); // Hide alert after 2 seconds
+        setTimeout(() => copyAlert.remove(), 2000);
       })
       .catch(() => {
         alert("Gagal menyalin kutipan.");
       });
   };
 
-  // Fungsi untuk memperbarui informasi batas kuota
-  const updateLimitInfo = (newCount: number = quoteRequestCount) => {
-    if (newCount >= 10) {
-      setLimitInfo("Batas kutipan tercapai, harap tunggu 5 menit.");
-      setCanGetQuote(false);
-    } else {
-      setLimitInfo(`Jumlah kutipan yang tersisa: ${10 - newCount}`);
-      setCanGetQuote(true);
-    }
-  };
-
-  // Fungsi untuk memulai countdown saat batas tercapai
-  const startCountdown = (remainingTime: number) => {
-    let timeLeft = remainingTime / 1000;
-    setCountdownTimer(
-      `Tunggu ${timeLeft} detik lagi untuk mendapatkan kutipan baru.`
-    );
-
-    const countdownInterval = setInterval(() => {
-      timeLeft--;
-      setCountdownTimer(
-        `Tunggu ${timeLeft} detik lagi untuk mendapatkan kutipan baru.`
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedRequestCount = parseInt(
+        localStorage.getItem("quoteRequestCount") || "0"
+      );
+      const storedLastTime = parseInt(
+        localStorage.getItem("lastRequestTime") || "0"
       );
 
-      if (timeLeft <= 0) {
-        clearInterval(countdownInterval);
-        setLimitInfo("Batas kutipan telah direset. Silakan coba lagi.");
-        setCanGetQuote(true);
-        localStorage.setItem("quoteRequestCount", "0");
-        localStorage.setItem(
-          "lastRequestTime",
-          new Date().getTime().toString()
-        );
-        setCountdownTimer("");
-      }
-    }, 1000);
-  };
-
-  // Menyimpan status limit saat halaman dimuat
-  useEffect(() => {
-    updateLimitInfo();
-  }, [quoteRequestCount]);
+      setQuoteRequestCount(storedRequestCount);
+      setLastRequestTime(storedLastTime);
+      updateLimitInfo(storedRequestCount);
+    }
+  }, []);
 
   return (
     <div className="container">
