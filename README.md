@@ -1,2 +1,2 @@
 # quote-generator
-Website pembuat kutipan sederhana dengan teknologi stack NMGV (NodeJs, MongoDB, Github, Vercel)
+Website pembuat kutipan sederhana dengan teknologi stack NMGV (Nextjs, MongoDB, Github, Vercel)
