@@ -22,7 +22,7 @@ const Footer: React.FC = () => {
     >
       <div className="relative w-full max-w-screen-xl mx-auto sm:px-6 lg:px-8">
         <div
-          className="absolute top-3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer bg-gray-700 rounded-full p-2"
+          className="absolute top-6 left-1/2 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer bg-gray-700 rounded-full p-2"
           onClick={toggleFooter}
           title={isExpanded ? "Collapse Footer" : "Expand Footer"}
         >
@@ -33,7 +33,6 @@ const Footer: React.FC = () => {
           )}
         </div>
 
-        {/* Top Section (Social Media Links) */}
         <div className="flex flex-col md:flex-row justify-between items-center py-4">
           <div className="text-center md:text-left mb-4 md:mb-0">
             <h3 className="text-2xl font-bold">Stay Connected</h3>
@@ -72,7 +71,6 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Section (Collapsed Content) */}
         <div
           className={`overflow-hidden transition-opacity duration-300 ${
             isExpanded ? "opacity-100" : "opacity-0"
