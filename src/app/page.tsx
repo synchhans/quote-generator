@@ -20,38 +20,35 @@ const HomePage = () => {
   const [isQuoteCopied, setIsQuoteCopied] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
-  const updateLimitInfo = (remainingTime: number | null = null) => {
-    if (quoteRequestCount >= 10) {
-      if (remainingTime !== null) {
-        const minutes = Math.floor(remainingTime / 60000);
-        const seconds = Math.floor((remainingTime % 60000) / 1000);
-        setLimitInfo(
-          `Batas kutipan tercapai, harap tunggu ${minutes}:${seconds
-            .toString()
-            .padStart(2, "0")} menit.`
-        );
-      } else {
-        setLimitInfo("Batas kutipan tercapai, harap tunggu 5 menit.");
-      }
+  const updateLimitInfoByCount = (count: number) => {
+    if (count >= 10) {
+      setLimitInfo("Batas kutipan tercapai, harap tunggu 5 menit.");
       setCanGetQuote(false);
     } else {
-      setLimitInfo(`Jumlah kutipan yang tersisa: ${10 - quoteRequestCount}`);
+      setLimitInfo(`Jumlah kutipan yang tersisa: ${10 - count}`);
       setCanGetQuote(true);
     }
   };
 
+  const updateLimitInfoByTime = (remainingTime: number) => {
+    const minutes = Math.floor(remainingTime / 60000);
+    const seconds = Math.floor((remainingTime % 60000) / 1000);
+    setLimitInfo(
+      `Harap tunggu ${minutes}:${seconds.toString().padStart(2, "0")} menit.`
+    );
+  };
+
   const startCountdown = (remainingTime: number) => {
     let timeLeft = remainingTime;
-
     const countdownInterval = setInterval(() => {
       timeLeft -= 1000;
-
       if (timeLeft > 0) {
-        updateLimitInfo(timeLeft);
+        updateLimitInfoByTime(timeLeft);
       } else {
         clearInterval(countdownInterval);
-        setLimitInfo("Batas kutipan telah direset. Silakan coba lagi.");
+        setQuoteRequestCount(0);
         setCanGetQuote(true);
+        setLimitInfo("Batas kutipan telah direset. Silakan coba lagi.");
         localStorage.setItem("quoteRequestCount", "0");
         localStorage.setItem(
           "lastRequestTime",
@@ -62,24 +59,23 @@ const HomePage = () => {
   };
 
   const getRandomQuote = async () => {
+    const currentTime = new Date().getTime();
     if (quoteRequestCount >= 10) {
-      const currentTime = new Date().getTime();
       if (currentTime - lastRequestTime < 300000) {
         const remainingTime = 300000 - (currentTime - lastRequestTime);
         startCountdown(remainingTime);
         return;
+      } else {
+        setQuoteRequestCount(0);
+        localStorage.setItem("quoteRequestCount", "0");
       }
-      setQuoteRequestCount(0);
-      localStorage.setItem("quoteRequestCount", "0");
-      localStorage.setItem("lastRequestTime", currentTime.toString());
-      updateLimitInfo();
     }
 
     setQuoteRequestCount((prevCount) => {
       const newCount = prevCount + 1;
       localStorage.setItem("quoteRequestCount", newCount.toString());
-      localStorage.setItem("lastRequestTime", new Date().getTime().toString());
-      updateLimitInfo(newCount);
+      localStorage.setItem("lastRequestTime", currentTime.toString());
+      updateLimitInfoByCount(newCount);
       return newCount;
     });
 
@@ -87,16 +83,18 @@ const HomePage = () => {
 
     try {
       const response = await fetch("/api/quotes");
-      if (!response.ok) {
-        throw new Error("Gagal mendapatkan data kutipan");
-      }
+      if (!response.ok) throw new Error("Gagal mendapatkan data kutipan");
 
       const quotes = await response.json();
+      if (quotes.length === 0)
+        throw new Error("Tidak ada kutipan yang tersedia");
       const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
       setQuoteText(randomQuote.text);
       setQuoteAuthor(`- ${randomQuote.author}`);
-    } catch (error) {
-      setAlertMessage("Terjadi kesalahan dalam mengambil kutipan!");
+    } catch (error: any) {
+      setQuoteText("Tidak dapat memuat kutipan.");
+      setQuoteAuthor("- Unknown");
+      setAlertMessage(error.message);
       setTimeout(() => setAlertMessage(null), 4000);
     } finally {
       setIsLoading(false);
@@ -107,15 +105,24 @@ const HomePage = () => {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedRequestCount = parseInt(
-        localStorage.getItem("quoteRequestCount") || "0"
+        localStorage.getItem("quoteRequestCount") || "0",
+        10
       );
       const storedLastTime = parseInt(
-        localStorage.getItem("lastRequestTime") || "0"
+        localStorage.getItem("lastRequestTime") || "0",
+        10
       );
 
-      setQuoteRequestCount(storedRequestCount);
-      setLastRequestTime(storedLastTime);
-      updateLimitInfo(storedRequestCount);
+      if (isNaN(storedRequestCount) || isNaN(storedLastTime)) {
+        localStorage.setItem("quoteRequestCount", "0");
+        localStorage.setItem("lastRequestTime", "0");
+        setQuoteRequestCount(0);
+        setLastRequestTime(0);
+      } else {
+        setQuoteRequestCount(storedRequestCount);
+        setLastRequestTime(storedLastTime);
+        updateLimitInfoByCount(storedRequestCount);
+      }
     }
   }, []);
 
